@@ -1,0 +1,14 @@
+{
+  "input_path": "/tmp2/richard/esg/vpesg_4k_train_1000.json",
+  "embedding_path": "/tmp2/richard/esg/embeddings/Qwen__Qwen3-Embedding-8B.parquet",
+  "rows": 1000,
+  "label_counts": {
+    "No": 186,
+    "Yes": 814
+  },
+  "positives_per_anchor": 2,
+  "negatives_per_anchor": 2,
+  "neighbor_pool_size": 16,
+  "pair_count": 4000,
+  "triplet_count": 4000
+}
