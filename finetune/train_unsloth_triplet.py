@@ -3,8 +3,11 @@
 This script supports:
 
 - `triplet`: expects `anchor`, `positive`, and `negative`
-- `cached_mnrl`: expects pair data such as `text_a`, `text_b`, `label`, then
-  keeps only positive pairs and trains with in-batch negatives
+- `mnrl`: expects pair data such as `text_a`, `text_b`, `label`, then keeps
+  only positive pairs and trains with in-batch negatives (all embeddings
+  computed in a single forward pass)
+- `cached_mnrl`: same as `mnrl` but computes embeddings in mini-chunks to
+  reduce peak GPU memory usage
 
 Example:
     CUDA_VISIBLE_DEVICES=1 python /tmp2/richard/esg/train_unsloth_triplet.py \
@@ -65,6 +68,7 @@ class TrainConfig:
     max_steps: int
     logging_steps: int
     save_steps: int
+    save_total_limit: int
     eval_ratio: float
     random_seed: int
     triplet_margin: float
@@ -95,7 +99,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--loss-type",
         default="triplet",
-        choices=["triplet", "cached_mnrl"],
+        choices=["triplet", "mnrl", "cached_mnrl"],
         help="Training loss type.",
     )
     parser.add_argument(
@@ -195,6 +199,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
         help="Checkpoint save frequency in steps.",
     )
     parser.add_argument(
+        "--save-total-limit",
+        type=int,
+        default=2,
+        help="Maximum number of checkpoints to keep.",
+    )
+    parser.add_argument(
         "--eval-ratio",
         type=float,
         default=0.1,
@@ -245,6 +255,7 @@ def build_config(args: argparse.Namespace) -> TrainConfig:
         max_steps=args.max_steps,
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
+        save_total_limit=args.save_total_limit,
         eval_ratio=args.eval_ratio,
         random_seed=args.random_seed,
         triplet_margin=args.triplet_margin,
@@ -261,9 +272,14 @@ def load_dataset_for_loss(config: TrainConfig) -> datasets.DatasetDict:
     if config.loss_type == "triplet":
         required_columns = ["anchor", "positive", "negative"]
         keep_columns = required_columns
-    else:
-        required_columns = ["text_a", "text_b", "label"]
-        keep_columns = required_columns
+    elif config.loss_type in ("mnrl", "cached_mnrl"):
+        # Accept either anchor/positive directly, or text_a/text_b/label (filter label==1)
+        if "anchor" in train_dataset.column_names and "positive" in train_dataset.column_names:
+            required_columns = ["anchor", "positive"]
+            keep_columns = required_columns
+        else:
+            required_columns = ["text_a", "text_b", "label"]
+            keep_columns = required_columns
 
     for column in required_columns:
         if column not in train_dataset.column_names:
@@ -279,7 +295,7 @@ def load_dataset_for_loss(config: TrainConfig) -> datasets.DatasetDict:
     if drop_columns:
         train_dataset = train_dataset.remove_columns(drop_columns)
 
-    if config.loss_type == "cached_mnrl":
+    if config.loss_type in ("mnrl", "cached_mnrl") and "label" in train_dataset.column_names:
         train_dataset = train_dataset.filter(
             lambda row: int(row["label"]) == 1
         ).rename_columns(
@@ -289,7 +305,9 @@ def load_dataset_for_loss(config: TrainConfig) -> datasets.DatasetDict:
             }
         ).remove_columns(["label"])
         if len(train_dataset) == 0:
-            raise ValueError("No positive pairs remain for cached_mnrl training.")
+            raise ValueError(
+                f"No positive pairs remain for {config.loss_type!r} training."
+            )
 
     if config.eval_ratio == 0.0:
         return datasets.DatasetDict({"train": train_dataset})
@@ -361,7 +379,7 @@ def build_training_args(
     warmup_steps = config.warmup_ratio
     batch_sampler = (
         sentence_transformers.training_args.BatchSamplers.NO_DUPLICATES
-        if config.loss_type == "cached_mnrl"
+        if config.loss_type in ("mnrl", "cached_mnrl")
         else sentence_transformers.training_args.BatchSamplers.BATCH_SAMPLER
     )
     return sentence_transformers.training_args.SentenceTransformerTrainingArguments(
@@ -377,10 +395,10 @@ def build_training_args(
         save_steps=config.save_steps,
         eval_strategy="steps" if has_validation else "no",
         eval_steps=config.save_steps if has_validation else None,
-        save_total_limit=2,
+        save_total_limit=config.save_total_limit,
         fp16=torch.cuda.is_available() and not torch.cuda.is_bf16_supported(),
         bf16=torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
-        report_to="none",
+        report_to="wandb",
         lr_scheduler_type="constant_with_warmup",
         seed=config.random_seed,
         batch_sampler=batch_sampler,
@@ -396,6 +414,10 @@ def build_loss(
         return sentence_transformers.losses.TripletLoss(
             model=model,
             triplet_margin=config.triplet_margin,
+        )
+    if config.loss_type == "mnrl":
+        return sentence_transformers.losses.MultipleNegativesRankingLoss(
+            model=model,
         )
     if config.loss_type == "cached_mnrl":
         return sentence_transformers.losses.CachedMultipleNegativesRankingLoss(

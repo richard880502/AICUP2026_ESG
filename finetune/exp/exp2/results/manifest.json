@@ -1,0 +1,26 @@
+[
+  {
+    "model_name": "exp2-baseline",
+    "rows": 1000,
+    "embedding_dim": 2560,
+    "output_path": "/tmp2/howard/side_project/ESG_AIDEA/finetune/exp/exp2/results/exp2-baseline.parquet"
+  },
+  {
+    "model_name": "exp2a",
+    "rows": 1000,
+    "embedding_dim": 2560,
+    "output_path": "/tmp2/howard/side_project/ESG_AIDEA/finetune/exp/exp2/results/exp2a.parquet"
+  },
+  {
+    "model_name": "exp2b",
+    "rows": 1000,
+    "embedding_dim": 2560,
+    "output_path": "/tmp2/howard/side_project/ESG_AIDEA/finetune/exp/exp2/results/exp2b.parquet"
+  },
+  {
+    "model_name": "exp2d",
+    "rows": 1000,
+    "embedding_dim": 2560,
+    "output_path": "/tmp2/howard/side_project/ESG_AIDEA/finetune/exp/exp2/results/exp2d.parquet"
+  }
+]
