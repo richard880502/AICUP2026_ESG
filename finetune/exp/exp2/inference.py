@@ -33,6 +33,7 @@ MODELS: dict[str, Path | None] = {
     "exp2a": SCRIPT_DIR / "exp2a" / "final_model",
     "exp2b": SCRIPT_DIR / "exp2b" / "final_model",
     "exp2d": SCRIPT_DIR / "exp2d" / "final_model",
+    "exp2e": SCRIPT_DIR / "exp2e" / "final_model",
 }
 
 
@@ -143,6 +144,13 @@ def main() -> None:
     parser.add_argument("--data-path", default=str(DEFAULT_DATA))
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--max-length", type=int, default=512)
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        choices=list(MODELS.keys()),
+        default=None,
+        help="Only run the specified embedding models",
+    )
     args = parser.parse_args()
 
     data_path = Path(args.data_path)
@@ -159,7 +167,10 @@ def main() -> None:
     manifest: list[dict] = []
     all_clf_results: list[dict] = []
 
-    for model_name, adapter_path in MODELS.items():
+    selected_models = args.models or list(MODELS.keys())
+
+    for model_name in selected_models:
+        adapter_path = MODELS[model_name]
         if adapter_path is not None and not adapter_path.exists():
             print(f"Skipping {model_name}: adapter not found at {adapter_path}")
             continue

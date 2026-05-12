@@ -27,6 +27,7 @@ MODELS: dict[str, Path | None] = {
     "exp2a":    SCRIPT_DIR / "exp2a" / "final_model",
     "exp2b":    SCRIPT_DIR / "exp2b" / "final_model",
     "exp2d":    SCRIPT_DIR / "exp2d" / "final_model",
+    "exp2e":    SCRIPT_DIR / "exp2e" / "final_model",
 }
 
 
@@ -122,8 +123,8 @@ def evaluate_model(
     return result
 
 
-MODEL_ORDER  = ["baseline", "exp2a", "exp2b", "exp2d"]
-MODEL_COLORS = {"baseline": "#888888", "exp2a": "#4C72B0", "exp2b": "#55A868", "exp2d": "#DD8452"}
+MODEL_ORDER  = ["baseline", "exp2a", "exp2b", "exp2d", "exp2e"]
+MODEL_COLORS = {"baseline": "#888888", "exp2a": "#4C72B0", "exp2b": "#55A868", "exp2d": "#DD8452", "exp2e": "#C44E52"}
 
 
 def plot_distributions(all_results: list[dict], out_dir: Path) -> None:
@@ -183,13 +184,14 @@ def plot_distributions(all_results: list[dict], out_dir: Path) -> None:
         model = r["model"]
         gap   = r["_gap"]
         color = MODEL_COLORS.get(model, "#999")
-        if has_scipy:
+        if has_scipy and len(gap) > 1:
             kde = gaussian_kde(gap, bw_method=0.3)
             xs  = np.linspace(gap.min() - 0.05, gap.max() + 0.05, 300)
             ax.plot(xs, kde(xs), label=f"{model} (acc={r['accuracy']:.3f})", color=color, linewidth=2)
             ax.fill_between(xs, kde(xs), alpha=0.15, color=color)
         else:
-            ax.hist(gap, bins=60, density=True, alpha=0.4, color=color,
+            bins = min(60, max(1, len(gap)))
+            ax.hist(gap, bins=bins, density=True, alpha=0.4, color=color,
                     label=f"{model} (acc={r['accuracy']:.3f})")
 
     ax.axvline(0, color="red", linestyle="--", linewidth=1.2, alpha=0.7, label="gap=0")

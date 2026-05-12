@@ -15,7 +15,7 @@ import numpy as np
 RESULTS_PATH = Path(__file__).parent / "results" / "classifier_results.json"
 OUT_DIR = Path(__file__).parent / "results"
 
-MODEL_ORDER = ["exp2-baseline", "exp2a", "exp2b", "exp2d"]
+MODEL_ORDER = ["exp2-baseline", "exp2a", "exp2b", "exp2d", "exp2e"]
 CLF_ORDER   = ["logreg", "xgboost"]
 CLF_COLORS  = {"logreg": "#4C72B0", "xgboost": "#DD8452"}
 METRICS     = ["cv_binary_f1_mean", "cv_macro_f1_mean", "cv_weighted_f1_mean"]
@@ -31,9 +31,17 @@ def load(path: Path) -> dict:
     return index
 
 
+def get_models(index: dict) -> list[str]:
+    present = {model for model, _ in index}
+    ordered = [model for model in MODEL_ORDER if model in present]
+    extras = sorted(present - set(MODEL_ORDER))
+    return ordered + extras
+
+
 # ── Figure 1: grouped bar chart ──────────────────────────────────────────────
 def plot_f1_bars(index: dict, out_dir: Path) -> None:
-    n_models  = len(MODEL_ORDER)
+    models = get_models(index)
+    n_models  = len(models)
     n_metrics = len(METRICS)
     n_clf     = len(CLF_ORDER)
 
@@ -47,7 +55,7 @@ def plot_f1_bars(index: dict, out_dir: Path) -> None:
         for i, clf in enumerate(CLF_ORDER):
             means = []
             stds  = []
-            for model in MODEL_ORDER:
+            for model in models:
                 r = index.get((model, clf), {})
                 means.append(r.get(metric, 0))
                 stds.append(r.get(metric.replace("mean", "std"), 0))
@@ -62,7 +70,7 @@ def plot_f1_bars(index: dict, out_dir: Path) -> None:
 
         ax.set_title(label, fontsize=12)
         ax.set_xticks(x)
-        ax.set_xticklabels(MODEL_ORDER, rotation=20, ha="right", fontsize=9)
+        ax.set_xticklabels(models, rotation=20, ha="right", fontsize=9)
         ax.set_ylim(0, 1.05)
         ax.set_ylabel("F1 Score")
         ax.legend(fontsize=9)
@@ -77,10 +85,11 @@ def plot_f1_bars(index: dict, out_dir: Path) -> None:
 
 # ── Figure 2: confusion matrices ─────────────────────────────────────────────
 def plot_confusion_matrices(index: dict, out_dir: Path) -> None:
-    combos = [(m, c) for m in MODEL_ORDER for c in CLF_ORDER]
+    models = get_models(index)
+    combos = [(m, c) for m in models for c in CLF_ORDER]
     n = len(combos)
     ncols = len(CLF_ORDER)
-    nrows = len(MODEL_ORDER)
+    nrows = len(models)
 
     fig, axes = plt.subplots(nrows, ncols,
                              figsize=(ncols * 3.5, nrows * 3.2))
@@ -89,7 +98,10 @@ def plot_confusion_matrices(index: dict, out_dir: Path) -> None:
 
     labels = ["No", "Yes"]
 
-    for row_i, model in enumerate(MODEL_ORDER):
+    if nrows == 1:
+        axes = np.array([axes])
+
+    for row_i, model in enumerate(models):
         for col_i, clf in enumerate(CLF_ORDER):
             ax = axes[row_i][col_i]
             r  = index.get((model, clf))
