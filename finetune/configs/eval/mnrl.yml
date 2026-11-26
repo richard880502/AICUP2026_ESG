@@ -1,0 +1,8 @@
+model_name: mnrl-lora-qwen-final-model
+base_model_path: /mnt/share_data_79/howard/models/qwen3-embedding-4b
+lora_path: /tmp2/howard/side_project/ESG_AIDEA/finetune/exp/exp2/exp2e/final_model/
+
+data_path: /tmp2/howard/side_project/ESG_AIDEA/finetune/vpesg_4k_train_1000.json
+output_dir: /tmp2/howard/side_project/ESG_AIDEA/finetune/results/exp2e
+batch_size: 4
+max_length: 2048

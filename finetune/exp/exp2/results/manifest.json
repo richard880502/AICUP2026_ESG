@@ -1,0 +1,8 @@
+[
+  {
+    "model_name": "exp2e",
+    "rows": 1000,
+    "embedding_dim": 2560,
+    "output_path": "/tmp2/howard/side_project/ESG_AIDEA/finetune/exp/exp2/results/exp2e.parquet"
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "overall": {
+    "pair_count": 8000,
+    "baseline_mean_similarity": 0.6340665279626846,
+    "finetune_mean_similarity": 0.6387678401730955,
+    "mean_delta_similarity": 0.004701312210410834,
+    "baseline_std_similarity": 0.09125119895034535,
+    "finetune_std_similarity": 0.36192679127427635
+  },
+  "by_label": {
+    "should_far": {
+      "pair_count": 4000,
+      "baseline_mean_similarity": 0.600968014895916,
+      "finetune_mean_similarity": 0.7550466474983841,
+      "mean_delta_similarity": 0.15407863260246812,
+      "baseline_std_similarity": 0.07955199337977513,
+      "finetune_std_similarity": 0.3184035494351056
+    },
+    "should_close": {
+      "pair_count": 4000,
+      "baseline_mean_similarity": 0.6671650410294533,
+      "finetune_mean_similarity": 0.5224890328478068,
+      "mean_delta_similarity": -0.14467600818164647,
+      "baseline_std_similarity": 0.09019730682075684,
+      "finetune_std_similarity": 0.3654937153958211
+    }
+  }
+}

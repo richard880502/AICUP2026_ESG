@@ -1,0 +1,32 @@
+.venv/
+*.log
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+venv/
+.venv/
+finetune/.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Training and experiment artifacts
+finetune/wandb/
+finetune/models/
+**/checkpoint-*/
+**/runs/
+finetune/exp/exp2/exp2a/
+finetune/exp/exp2/exp2b/
+finetune/exp/exp2/exp2c/
+finetune/exp/exp2/exp2d/
+finetune/exp/exp2/exp2e/
+
+# Local outputs
+*.parquet
+*.tmp
+*.temp

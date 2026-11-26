@@ -1,0 +1,1 @@
+exo2 plot_result.py、plot_triplet.py 與 triplet_distance.py 加入 exp2e model

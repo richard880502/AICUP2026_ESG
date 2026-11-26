@@ -1,0 +1,8 @@
+[
+  {
+    "model_name": "qwen-embedding-8b",
+    "rows": 1000,
+    "embedding_dim": 4096,
+    "output_path": "/tmp2/howard/side_project/ESG_AIDEA/finetune/results/qwen-embedding-8b-richard/baseline.parquet"
+  }
+]

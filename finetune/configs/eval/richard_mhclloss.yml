@@ -1,0 +1,8 @@
+model_name: qwen-embedding-8b
+base_model_path: /mnt/share_data_79/howard/models/qwen3-embedding-8b
+lora_path: /mnt/share_data_79/embedd_ft_adapter/
+
+data_path: null  # null = auto-resolve to vpesg_4k_train_1000.json
+output_dir: results/qwen-embedding-8b-richard  # null = auto-resolve to results/{model_name}/
+batch_size: 4
+max_length: 512
